@@ -1,22 +1,32 @@
-# jamstack
+# 鎌倉のテイクアウト可能なお店リスト
 
-> My phenomenal Nuxt.js project
+> Nuxt.js _ Contentful _ Firebase で構築しています
+
+[Nuxt.js](https://nuxtjs.org).
+
+[Contentful](https://www.contentful.com/g).
+
+[Firebase](https://firebase.google.com/?hl=jag).
 
 ## Build Setup
 
-``` bash
+```bash
 # install dependencies
 $ yarn install
 
-# serve with hot reload at localhost:3000
+# 開発サーバーが localhost:3000 で立ち上がります
 $ yarn dev
 
-# build for production and launch server
-$ yarn build
-$ yarn start
-
-# generate static project
+# 静的ページで出力してFirebaseにdeployしてください
 $ yarn generate
 ```
 
-For detailed explanation on how things work, check out [Nuxt.js docs](https://nuxtjs.org).
+## 環境変数について
+
+Contentful の設定ファイルは.env ファイルで管理しリポジトリには入れてないので下記の内容の.env ファイルを作成して対応お願いします
+
+```
+CTF_SPACE_ID=<Contentfulで記載されているspace_id>
+CTF_CDA_ACCESS_TOKEN=<Contentfulで記載されているアクセストークン>
+CTF_BLOG_POST_TYPE_ID=<contentfulで記載されているポストタイプ>
+```
