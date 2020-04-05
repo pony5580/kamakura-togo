@@ -1,5 +1,18 @@
 <template>
-  <div class="container">
+  <div class="wrp">
+    <v-container class="search">
+      <v-row align="center">
+        <v-col class="d-flex" cols="12">
+          <v-select
+            v-model="area"
+            :items="getAreas()"
+            item-text="name"
+            item-value="name"
+            label="地域"
+          ></v-select>
+        </v-col>
+      </v-row>
+    </v-container>
     <v-simple-table fixed-header>
       <template v-slot:default>
         <thead>
@@ -14,23 +27,19 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="item in items"
-            :key="item.id"
-            @click="toDetail(item.sys.id)"
-          >
-            <td>{{ item.fields.title }}</td>
-            <td>{{ getInclude(item.fields.area).fields.name }}</td>
+          <tr v-for="item in items" :key="item.id" @click="toDetail(item.id)">
+            <td>{{ item.title }}</td>
+            <td>{{ item.area.fields.name }}</td>
             <td v-if="!$vuetify.breakpoint.xsOnly">
-              {{ item.fields.business_hours }}
+              {{ item.business_hours }}
             </td>
-            <td v-if="smAndDown">{{ item.fields.holiday }}</td>
+            <td v-if="smAndDown">{{ item.holiday }}</td>
             <td class="text-right">
               <span
-                v-for="cat in item.fields.category"
+                v-for="cat in item.category"
                 :key="cat.sys.id"
                 class="tag"
-                >{{ getInclude(cat).fields.name }}</span
+                >{{ cat.fields.name }}</span
               >
             </td>
           </tr>
@@ -40,27 +49,27 @@
   </div>
 </template>
 <script>
-// import axios from 'axios'
-import client from '~/plugins/contentful'
-
+import axios from '~/plugins/axios.js'
 export default {
   async asyncData() {
-    let responsData = []
-    await client
-      .getEntries({
-        content_type: 'storesToGo',
-      })
-      .then((res) => (responsData = res))
-    return { responsData }
+    const res = await axios.get(`/_nuxt/api/datas.json`)
+    return { responsData: res.data }
   },
   data() {
     return {
-      responsData: null,
+      area: '未設定',
+      category: '未設定',
     }
   },
   computed: {
     items() {
-      return this.responsData.items
+      let data = this.responsData.items
+      if (this.area !== '未設定') {
+        data = data.filter((item) => {
+          return item.area.fields.name === this.area
+        })
+      }
+      return data
     },
     smAndDown() {
       return !this.$vuetify.breakpoint.smAndDown
@@ -70,61 +79,64 @@ export default {
     toDetail(id) {
       this.$router.push({ path: `/store/${id}` })
     },
-    getInclude(data) {
-      return this.responsData.includes.Entry.find((i) => {
-        return i.sys.id === data.sys.id
-      })
+    getAreas() {
+      return [{ name: '未設定' }, ...this.responsData.areas]
     },
   },
 }
 </script>
 
 <style lang="scss">
-.container {
-  padding: 0 5vw;
+.search {
+  width: 50vw;
+  .xs & {
+    width: 100%;
+  }
 }
 .tag {
   background: #f5f5f5;
   padding: 5px 10px;
   margin: 0 3px;
 }
-.theme--light.v-data-table tbody tr {
-  transition: color 1000ms cubic-bezier(0.075, 0.82, 0.165, 1);
-}
+.wrp {
+  .theme--light.v-data-table tbody tr {
+    transition: color 1000ms cubic-bezier(0.075, 0.82, 0.165, 1);
+  }
 
-.theme--light.v-data-table
-  tbody
-  tr:hover:not(.v-data-table__expanded__content):not(.v-data-table__empty-wrapper) {
-  cursor: pointer;
-  background: #fff;
-  color: #999;
-}
-.v-data-table td {
-  padding: 5px 16px;
-  .xs &,
-  .sm & {
-    font-size: 12px;
+  .theme--light.v-data-table
+    tbody
+    tr:hover:not(.v-data-table__expanded__content):not(.v-data-table__empty-wrapper) {
+    cursor: pointer;
+    background: #fff !important;
+    color: #999;
   }
-}
-table .th {
-  white-space: nowrap;
-  &.name {
-    width: 15vw;
+  .v-data-table td {
+    padding: 5px 16px !important;
+    .xs &,
+    .sm & {
+      font-size: 12px;
+    }
   }
-  &.area {
-    width: 5rem;
-  }
-  &.time {
-    width: 25vw;
-  }
-  &.category {
-    width: 10rem;
-  }
-  .xs &,
-  .sm & {
-    font-size: 12px;
+  table .th {
+    white-space: nowrap;
     &.name {
-      width: 13rem;
+      width: 15vw;
+    }
+    &.area {
+      width: 6rem;
+    }
+    &.time {
+      width: 25vw;
+    }
+    &.category {
+      width: 10rem;
+    }
+    .xs &,
+    .sm & {
+      font-size: 12px;
+      &.name {
+        width: 13rem;
+      }
     }
   }
 }

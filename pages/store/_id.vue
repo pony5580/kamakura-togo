@@ -1,14 +1,11 @@
 <template>
-  <div class="container">
+  <div class="wrp">
     <header class="c-article__header">
-      <h1>{{ item.fields.title }}</h1>
+      <h1>{{ item.title }}</h1>
       <div class="c-article__categories">
-        <span
-          v-for="cat in item.fields.category"
-          :key="cat.sys.id"
-          class="tag"
-          >{{ getInclude(cat).fields.name }}</span
-        >
+        <span v-for="cat in item.category" :key="cat.id" class="tag">{{
+          cat.fields.name
+        }}</span>
       </div>
     </header>
 
@@ -16,7 +13,7 @@
       <div class="c-article__spec">
         <div class="c-article__spec__col--1">詳細</div>
         <div class="c-article__spec__col--2">
-          <span v-html="$sanitize(getHTML(item.fields.description))"></span>
+          <span v-html="$sanitize(getHTML(item.description))"></span>
         </div>
       </div>
     </section>
@@ -25,7 +22,12 @@
       <div class="c-article__spec">
         <div class="c-article__spec__col--1">住所</div>
         <div class="c-article__spec__col--2">
-          {{ item.fields.address }}
+          <a
+            :href="'https://www.google.co.jp/maps/dir//' + item.address"
+            target="_blank"
+          >
+            {{ item.address }}
+          </a>
         </div>
       </div>
     </section>
@@ -34,7 +36,7 @@
       <div class="c-article__spec">
         <div class="c-article__spec__col--1">電話番号</div>
         <div class="c-article__spec__col--2">
-          {{ item.fields.tel }}
+          {{ item.tel }}
         </div>
       </div>
     </section>
@@ -43,7 +45,7 @@
       <div class="c-article__spec">
         <div class="c-article__spec__col--1">営業時間</div>
         <div class="c-article__spec__col--2">
-          {{ item.fields.business_hours }}
+          {{ item.business_hours }}
         </div>
       </div>
     </section>
@@ -51,43 +53,28 @@
     <section class="p-article__body__spec">
       <div class="c-article__spec">
         <div class="c-article__spec__col--1">定休日</div>
-        <div class="c-article__spec__col--2">{{ item.fields.holiday }}</div>
+        <div class="c-article__spec__col--2">{{ item.holiday }}</div>
       </div>
+    </section>
+    <section class="back" @click="$router.push({ path: `/` })">
+      <img src="~/assets/images/back.svg" />
     </section>
   </div>
 </template>
 <script>
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer'
-import client from '~/plugins/contentful'
+import axios from '~/plugins/axios'
 export default {
   async asyncData({ env, params }) {
-    let responsData = null
-    await client
-      .getEntries({
-        content_type: 'storesToGo',
-        'sys.id': params.id,
-      })
-      .then((res) => (responsData = res))
-    return { responsData }
-  },
-  data() {
-    return {
-      responsData: '',
-    }
-  },
-  computed: {
-    item() {
-      return this.responsData.items[0]
-    },
+    const res = await axios.get(`/_nuxt/api/datas.json`)
+    const item = res.data.items.find((item) => {
+      return item.id === params.id
+    })
+    return { item }
   },
   methods: {
     getHTML(data) {
       return documentToHtmlString(data)
-    },
-    getInclude(data) {
-      return this.responsData.includes.Entry.find((i) => {
-        return i.sys.id === data.sys.id
-      })
     },
   },
 }
@@ -124,5 +111,17 @@ export default {
 .c-article__spec__col--2 {
   line-height: 2;
   word-break: break-all;
+}
+.back {
+  cursor: pointer;
+  margin: 20px 0 10px;
+  img {
+    display: block;
+    margin: 0 auto;
+    width: 10px;
+  }
+  &:hover {
+    opacity: 0.6;
+  }
 }
 </style>
